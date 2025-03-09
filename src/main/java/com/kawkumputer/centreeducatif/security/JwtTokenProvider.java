@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Slf4j
@@ -18,13 +19,16 @@ public class JwtTokenProvider {
     @Value("${app.jwt.expiration-in-ms}")
     private long jwtExpirationInMs;
 
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
+
     private SecretKey key;
 
     @PostConstruct
     public void init() {
-        // Générer une nouvelle clé sécurisée au démarrage du serveur
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-        log.info("JWT key initialized");
+        // Utiliser la clé secrète fixe de la configuration
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        log.info("JWT key initialized with fixed secret");
     }
 
     public String generateToken(Authentication authentication) {
@@ -64,6 +68,7 @@ public class JwtTokenProvider {
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token);
+            log.debug("Token validated successfully");
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.error("Invalid JWT signature: {}", e.getMessage());

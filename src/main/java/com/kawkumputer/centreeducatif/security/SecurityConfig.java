@@ -23,7 +23,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Slf4j
 @Configuration
@@ -81,10 +80,30 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         log.debug("Configuring CORS...");
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        
+        // Autoriser les origines spécifiques
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:62659",      // Dev local
+            "http://192.168.1.27:8080",    // Dev réseau local
+            "http://192.168.1.27:62659"    // Dev réseau local avec port alternatif
+        ));
+        
+        // Méthodes HTTP autorisées selon les MEMORIES
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization")); // Exposer l'en-tête Authorization pour le JWT
+        
+        // Headers autorisés selon les MEMORIES
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "X-Requested-With",
+            "Cache-Control"
+        ));
+        
+        // Exposer l'en-tête Authorization pour le JWT
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        
+        // Pas de credentials comme spécifié dans les MEMORIES
         configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

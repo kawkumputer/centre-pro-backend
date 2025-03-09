@@ -52,6 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);
+            // Ne pas laisser l'exception se propager pour éviter de bloquer la chaîne de filtres
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
@@ -60,16 +62,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+            String token = bearerToken.substring(7);
+            log.debug("Extracted JWT token from Authorization header");
+            return token;
         }
+        log.debug("No JWT token found in Authorization header");
         return null;
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        boolean shouldNotFilter = path.contains("/api/auth/") || path.equals("/api/error");
-        log.debug("Request to {} should {} be filtered", path, shouldNotFilter ? "not" : "");
+        String contextPath = request.getContextPath();
+        
+        // Retirer le context-path pour la comparaison
+        if (path.startsWith(contextPath)) {
+            path = path.substring(contextPath.length());
+        }
+        
+        // Retirer le préfixe /api si présent
+        if (path.startsWith("/api")) {
+            path = path.substring(4);
+        }
+        
+        // Vérifier si le chemin est public
+        boolean shouldNotFilter = path.startsWith("/auth/") || path.equals("/error");
+        log.debug("Request to {} (normalized path: {}) should {} be filtered", 
+                 request.getRequestURI(), path, shouldNotFilter ? "not" : "");
         return shouldNotFilter;
     }
 }

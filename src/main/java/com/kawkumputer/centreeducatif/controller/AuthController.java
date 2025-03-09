@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class AuthController {
@@ -32,11 +32,11 @@ public class AuthController {
     @PostMapping(value = "/signup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> signup(@Valid @RequestBody SignUpRequest request) {
         log.debug("Processing signup request for email: {}", request.getEmail());
-        
+
         try {
             // Par défaut, on attribue le rôle USER comme spécifié dans les MEMORIES
             request.setRole(Role.USER);
-            
+
             User savedUser = userService.createUser(request);
             log.info("User registered successfully with id: {}", savedUser.getId());
 
@@ -66,7 +66,7 @@ public class AuthController {
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         log.debug("Processing login request for email: {}", request.getEmail());
-        
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
