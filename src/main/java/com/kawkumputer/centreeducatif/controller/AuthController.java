@@ -49,7 +49,14 @@ public class AuthController {
             String jwt = tokenProvider.generateToken(authentication);
             log.debug("JWT token generated for user: {}", request.getEmail());
 
-            return ResponseEntity.ok(new AuthResponse(jwt));
+            return ResponseEntity.ok(AuthResponse.builder()
+                .token(jwt)
+                .id(savedUser.getId())
+                .firstName(savedUser.getFirstName())
+                .lastName(savedUser.getLastName())
+                .email(savedUser.getEmail())
+                .role(savedUser.getRole())
+                .build());
         } catch (Exception e) {
             log.error("Error during signup for email: {}", request.getEmail(), e);
             throw e;
@@ -70,7 +77,17 @@ public class AuthController {
             log.info("User logged in successfully: {}", request.getEmail());
             log.debug("JWT token generated for user: {}", request.getEmail());
 
-            return ResponseEntity.ok(new AuthResponse(jwt));
+            // Récupérer les informations de l'utilisateur
+            User user = userService.getUserByEmail(request.getEmail());
+
+            return ResponseEntity.ok(AuthResponse.builder()
+                .token(jwt)
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build());
         } catch (Exception e) {
             log.error("Error during login for email: {}", request.getEmail(), e);
             throw e;

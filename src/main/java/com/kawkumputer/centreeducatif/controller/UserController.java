@@ -18,20 +18,30 @@ public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/{id}")
+    @GetMapping(path = "/me")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        log.debug("Getting current user details");
+        User user = userService.getCurrentUser()
+            .orElseThrow(() -> new RuntimeException("Aucun utilisateur connecté"));
+        
+        return ResponseEntity.ok(mapToUserResponse(user));
+    }
+
+    @GetMapping(path = "/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROJECT_MANAGER') or @userService.getCurrentUser().isPresent() and @userService.getCurrentUser().get().getId() == #id")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         log.debug("Getting user details for id: {}", id);
         User user = userService.getUserById(id);
-        
-        UserResponse response = UserResponse.builder()
+        return ResponseEntity.ok(mapToUserResponse(user));
+    }
+
+    private UserResponse mapToUserResponse(User user) {
+        return UserResponse.builder()
             .id(user.getId())
             .firstName(user.getFirstName())
             .lastName(user.getLastName())
             .email(user.getEmail())
             .role(user.getRole())
             .build();
-            
-        return ResponseEntity.ok(response);
     }
 }

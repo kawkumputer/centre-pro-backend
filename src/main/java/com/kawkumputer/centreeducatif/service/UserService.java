@@ -50,6 +50,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public User getUserByEmail(String email) {
+        log.debug("Fetching user with email: {}", email);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+    }
+
+    @Transactional(readOnly = true)
     public Optional<User> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
