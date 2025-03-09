@@ -81,11 +81,10 @@ public class SecurityConfig {
         log.debug("Configuring CORS...");
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Autoriser les origines spécifiques
-        configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:62659",      // Dev local
-            "http://192.168.1.27:8080",    // Dev réseau local
-            "http://192.168.1.27:62659"    // Dev réseau local avec port alternatif
+        // Autoriser localhost avec n'importe quel port en développement
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",          // Dev local avec n'importe quel port
+            "http://192.168.1.27:*"       // Dev réseau local avec n'importe quel port
         ));
         
         // Méthodes HTTP autorisées selon les MEMORIES
