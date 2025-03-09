@@ -3,6 +3,7 @@ package com.kawkumputer.centreeducatif.service;
 import com.kawkumputer.centreeducatif.domain.User;
 import com.kawkumputer.centreeducatif.dto.SignUpRequest;
 import com.kawkumputer.centreeducatif.repository.UserRepository;
+import com.kawkumputer.centreeducatif.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -58,30 +59,37 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Optional<User> getCurrentUser() {
+        log.debug("Getting current user from security context");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
+            log.debug("No authenticated user found");
             return Optional.empty();
         }
 
         Object principal = authentication.getPrincipal();
-        if (principal instanceof User) {
-            return Optional.of((User) principal);
+        if (principal instanceof UserPrincipal userPrincipal) {
+            log.debug("Found UserPrincipal, fetching user with id: {}", userPrincipal.getId());
+            return userRepository.findById(userPrincipal.getId());
         }
 
+        log.debug("Principal is not a UserPrincipal: {}", principal.getClass().getName());
         return Optional.empty();
     }
 
     @Transactional(readOnly = true)
     public Optional<User> getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
+            log.debug("No authenticated user found in provided authentication");
             return Optional.empty();
         }
 
         Object principal = authentication.getPrincipal();
-        if (principal instanceof User) {
-            return Optional.of((User) principal);
+        if (principal instanceof UserPrincipal userPrincipal) {
+            log.debug("Found UserPrincipal in provided authentication, fetching user with id: {}", userPrincipal.getId());
+            return userRepository.findById(userPrincipal.getId());
         }
 
+        log.debug("Principal in provided authentication is not a UserPrincipal: {}", principal.getClass().getName());
         return Optional.empty();
     }
 }
